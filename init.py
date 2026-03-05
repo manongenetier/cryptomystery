@@ -29,7 +29,6 @@ cartes = {
 
 def initPaquet():
   # Mélange des cartes
-  # Mélange des cartes
   paquet = list(cartes.items())
   random.shuffle(paquet)
   return dict(paquet)

@@ -1,7 +1,8 @@
 # Il faut d'abord une liste de cartes
-import random
+import random, json, os
 
-cartes = {
+DOSSIER_PARTAGE = "./partage"
+CARTES = {
     # Trèfles (1–13)
     "As-T": 1,   "2-T": 2,   "3-T": 3,   "4-T": 4,   "5-T": 5,
     "6-T": 6,   "7-T": 7,   "8-T": 8,   "9-T": 9,   "10-T": 10,
@@ -29,7 +30,38 @@ cartes = {
 
 def initPaquet():
   # Mélange des cartes
-  paquet = list(cartes.items())
+  paquet = list(CARTES.items())
   random.shuffle(paquet)
   return dict(paquet)
 
+
+def init(spies):
+    os.makedirs(DOSSIER_PARTAGE, exist_ok=True)
+    
+    paquet = initPaquet()
+    
+    for nom in spies:
+        nom = nom.strip().lower()
+        # fichier qui stock le paquet partagé (une fois)
+        paquet_fic = os.path.join(DOSSIER_PARTAGE, f"paquet_{nom}.json")
+        # fichier qui stock les messages reçus
+        msg_fic = os.path.join(DOSSIER_PARTAGE, f"msg_{nom}.json")
+        
+        if os.path.exists(paquet_fic):
+            print(f"Paquet pour ~{nom}~ existe déjà, NEXT")
+        else: 
+            with open(paquet_fic, "w") as f:
+                json.dump(paquet, f, indent=2)
+            print(f"paquet créé pour ~{nom}~")
+        if not os.path.exists(msg_fic):
+            with open(msg_fic, "w") as f:
+                json.dump([], f)
+                
+    print(f"\n Dossier partagé prêt dans {DOSSIER_PARTAGE}/")
+    print("IMPORTANT : Copier le dossier à tous les participant une seule fois")
+
+if __name__ == "__main__" :
+    print("Initialisation du système de messagerie Solitaire\n")
+    noms = input("Noms des spies (séparés par une virgule) > ").split(",")
+    init(noms)
+            

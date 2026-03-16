@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { cryptoApi } from "./services/cryptoApi";
 import "./App.css";
+import Typewriter from "./SplashScreen";
 
 function App() {
   const [message, setMessage] = useState("");
@@ -9,6 +10,7 @@ function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [paquet, setPaquet] = useState(null);
+  const [splashDone, setSplashDone] = useState(false);
 
   const initPaquet = async () => {
     try {
@@ -57,9 +59,6 @@ function App() {
       const response = await cryptoApi.decoder(codeArray, paquet);
       setResult(`Decodé : ${response.decode}`);
       setPaquet(response.etat_paquet);
-      useEffect(() => {
-        console.log("paquet mis à jour:", paquet);
-      }, [paquet]);
       setError("");
     } catch (err) {
       setError("Decodage échoué");
@@ -70,52 +69,64 @@ function App() {
 
   return (
     <div className="app">
-      <header>
-        <h2>Welcome to Crypto Mystery</h2>
-      </header>
-
-      <div>
-        <button onClick={initPaquet} disabled={loading}>
-          Initialiser le paquet
-        </button>
-        {paquet && <p>Paquet initalisé</p>}
+      <div id="intro" style={{ display: splashDone ? 'none' : 'flex' }}>
+        <p>
+          {!splashDone && (
+            <Typewriter
+              text="Bienvenue à Crypto Mystery"
+              delay={100}
+              onComplete={() => setSplashDone(true)}
+            />
+          )}
+        </p>
       </div>
 
-      <div>
-        <h3>coder</h3>
-        <input
-          type="text"
-          placeholder="Message à coder"
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          disabled={!paquet || loading}
-        />
-        <button onClick={handleCodage} disabled={!paquet || loading}>
-          Coder
-        </button>
-        {messageCode && <p>message codé : {messageCode}</p>}
-      </div>
+      {splashDone && (
+        <>
+          <div>
+            <button onClick={initPaquet} disabled={loading}>
+              Initialiser le paquet
+            </button>
+            {paquet && <p>Paquet initalisé</p>}
+          </div>
 
-      <div>
-        <h3>Décoder</h3>
-        <button
-          onClick={handleDecodage}
-          disabled={!paquet || loading || !messageCode}
-        >
-          Décoder
-        </button>
-        {result && <p>{result}</p>}
-      </div>
+          <div>
+            <h3>coder</h3>
+            <input
+              type="text"
+              placeholder="Message à coder"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              disabled={!paquet || loading}
+            />
+            <button onClick={handleCodage} disabled={!paquet || loading}>
+              Coder
+            </button>
+            {messageCode && <p>message codé : {messageCode}</p>}
+          </div>
 
-      <div>
-        <h3>État du paquet</h3>
-        {paquet &&
-          paquet.map((carte, index) => (
-            <p key={index}>
-              {carte.carte} : {carte.valeur}
-            </p>
-          ))}
-      </div>
+          <div>
+            <h3>Décoder</h3>
+            <button
+              onClick={handleDecodage}
+              disabled={!paquet || loading || !messageCode}
+            >
+              Décoder
+            </button>
+            {result && <p>{result}</p>}
+          </div>
+
+          <div>
+            <h3>État du paquet</h3>
+            {paquet &&
+              paquet.map((carte, index) => (
+                <p key={index}>
+                  {carte.carte} : {carte.valeur}
+                </p>
+              ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

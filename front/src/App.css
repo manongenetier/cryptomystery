@@ -1,4 +1,10 @@
 @import url(https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap);
+body{
+  background-color: black;
+}
+.app {
+  width: 100%;
+}
 
 #intro {
   font-family: 'Pixelify Sans';

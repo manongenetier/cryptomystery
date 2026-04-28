@@ -46,6 +46,11 @@ function PersonPanel({
   const [error, setError] = useState("");
   const messagesEndRef = useRef(null);
 
+  // Vérifier si l'utilisateur a des messages non déchiffrés de l'autre personne
+  const hasUndecodedMessages = messages.some(
+    msg => !msg.decoded && msg.from !== side
+  );
+
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
@@ -54,6 +59,11 @@ function PersonPanel({
     if (!input.trim()) return;
     if (!paquetRef.current) {
       setError("Le paquet n'est pas encore initialisé.");
+      return;
+    }
+    // Bloquer l'envoi si des messages sont à déchiffrer
+    if (hasUndecodedMessages) {
+      setError("Vous devez d'abord déchiffrer tous les messages reçus avant d'en envoyer de nouveaux.");
       return;
     }
     try {
@@ -103,7 +113,7 @@ function PersonPanel({
       <div className="person-header">
         <h2>{label}</h2>
         <span className="info-badge">
-          {paquetRef.current ? "● Paquet actif" : "En attente..."}
+          {paquetRef.current ? "Paquet actif" : "En attente..."}
         </span>
       </div>
 
@@ -155,7 +165,9 @@ function PersonPanel({
             className="message-input"
             placeholder={
               initialized
-                ? "Votre message secret..."
+                ? hasUndecodedMessages 
+                  ? "Déchiffrez d'abord les messages reçus..."
+                  : "Votre message secret..."
                 : "Initialisez le paquet d'abord..."
             }
             value={input}
@@ -164,15 +176,16 @@ function PersonPanel({
               e.key === "Enter" &&
               !e.shiftKey &&
               !loading &&
+              !hasUndecodedMessages &&
               (e.preventDefault(), handleSend())
             }
-            disabled={!paquetRef.current || loading}
+            disabled={!paquetRef.current || loading || hasUndecodedMessages}
           />
           {error && <p className="error-message">{error}</p>}
           <button
             className="send-btn"
             onClick={handleSend}
-            disabled={!paquetRef.current || loading || !input.trim()}
+            disabled={!paquetRef.current || loading || !input.trim() || hasUndecodedMessages}
           >
             {loading ? "En cours..." : "Chiffrer & Envoyer"}
           </button>
@@ -210,7 +223,7 @@ export default function App() {
   const [initLoading, setInitLoading] = useState(false);
   const [initError, setInitError] = useState("");
 
-  // Un seul /init → copie identique donnée aux deux agents
+  // Un seul /init copie identique donnée aux deux agents
   // Chaque paquet évolue ensuite indépendamment mais en miroir
   const paquetA = useRef(null);
   const paquetB = useRef(null);
@@ -300,7 +313,7 @@ export default function App() {
           <div className="chat-container">
             <PersonPanel
               side="A"
-              label="Manon"
+              label="Alice"
               messages={messages}
               paquetRef={paquetA}
               onMessageSent={handleMessageSent}
@@ -309,7 +322,7 @@ export default function App() {
             />
             <PersonPanel
               side="B"
-              label="Bahdja"
+              label="Bob"
               messages={messages}
               paquetRef={paquetB}
               onMessageSent={handleMessageSent}
